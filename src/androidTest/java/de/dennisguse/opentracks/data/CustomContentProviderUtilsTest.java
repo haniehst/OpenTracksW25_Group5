@@ -1123,7 +1123,7 @@ public class CustomContentProviderUtilsTest {
         // given
         Instant start = Instant.now();
         TestSensorDataUtil sensorDataUtil = new TestSensorDataUtil();
-        addSensorDataWithManualResume(start, sensorDataUtil);
+        addSensorData(start, sensorDataUtil, TrackPoint.Type.SEGMENT_START_MANUAL);
 
         Track.Id trackId = new Track.Id(start.toEpochMilli());
         Track track = TestDataUtil.createTrack(trackId);
