@@ -151,7 +151,16 @@ public class ShareContentProvider extends CustomContentProvider {
     @Override
     public Cursor query(@NonNull Uri uri, @Nullable String[] projection, @Nullable String selection, @Nullable String[] selectionArgs, @Nullable String sortOrder) {
         if (uriMatcher.match(uri) == -1) {
-            return super.query(uri, projection, selection, selectionArgs, sortOrder);
+            throw new IllegalArgumentException("Unknown URI: " + uri); // Block invalid URIs
+        }
+
+        // Optional extra sanitization
+        if (projection != null) {
+            for (String col : projection) {
+                if (!OpenableColumns.DISPLAY_NAME.equals(col) && !OpenableColumns.SIZE.equals(col)) {
+                    throw new IllegalArgumentException("Invalid projection column: " + col); // Prevent SQL-like column injection
+                }
+            }
         }
 
         // ContentProvider has already checked granted permissions
