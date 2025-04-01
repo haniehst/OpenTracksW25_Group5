@@ -169,6 +169,16 @@ public class ExportActivity extends AppCompatActivity implements ExportService.E
         if (savedInstanceState == null) {
             autoConflict = ConflictResolutionStrategy.CONFLICT_NONE;
             setProgress();
+
+            // validate the URL before using
+            if (directoryUri == null || !"content".equals(directoryUri.getScheme())) {
+                runOnUiThread(() -> {
+                    Toast.makeText(this, "Invalid URI provided", Toast.LENGTH_SHORT).show();
+                    finish();
+                });
+                return;
+            }
+
             new Thread(() -> {
                 directoryFiles = ExportUtils.getAllFiles(ExportActivity.this, documentFile.getUri());
                 runOnUiThread(() -> {
