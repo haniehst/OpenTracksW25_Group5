@@ -179,8 +179,10 @@ public class ExportActivity extends AppCompatActivity implements ExportService.E
                 return;
             }
 
+            DocumentFile safeDocumentFile = DocumentFile.fromTreeUri(this, directoryUri);
+
             new Thread(() -> {
-                directoryFiles = ExportUtils.getAllFiles(ExportActivity.this, documentFile.getUri());
+                directoryFiles = ExportUtils.getAllFiles(ExportActivity.this, safeDocumentFile.getUri());
                 runOnUiThread(() -> {
                     createExportTasks(allInOneFile);
                     nextExport(null);
