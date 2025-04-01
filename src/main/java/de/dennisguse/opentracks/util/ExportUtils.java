@@ -84,11 +84,43 @@ public class ExportUtils {
 
     public static List<String> getAllFiles(Context context, Uri directoryUri) {
         List<String> fileNames = new ArrayList<>();
-        final ContentResolver resolver = context.getContentResolver();
-        final Uri childrenUri = DocumentsContract.buildChildDocumentsUriUsingTree(directoryUri, DocumentsContract.getDocumentId(directoryUri));
 
-        try (Cursor c = resolver.query(childrenUri, new String[]{DocumentsContract.Document.COLUMN_DISPLAY_NAME}, null, null, null)) {
-            while (c.moveToNext()) {
+        // URI Scheme Validation
+        if (directoryUri == null || !"content".equals(directoryUri.getScheme())) {
+            Log.w(TAG, "Unsafe or invalid directoryUri: " + directoryUri);
+            return fileNames;
+        }
+
+        String docId;
+
+        // Extract and sanitize the document ID
+        try {
+            docId = DocumentsContract.getDocumentId(directoryUri);
+
+            // Check for common SQL injection patterns
+            if (docId.contains("'") ||
+                    docId.toLowerCase().contains(" or ") ||
+                    docId.toLowerCase().contains(" and ") ||
+                    docId.toLowerCase().contains("--") ||
+                    docId.toLowerCase().contains(";")) {
+                Log.w(TAG, "Potentially unsafe document ID in URI: " + docId);
+                return fileNames;
+            }
+
+        } catch (Exception e) {
+            Log.w(TAG, "Failed to extract document ID: " + e.getMessage());
+            return fileNames;
+        }
+
+        // Build the safe children URI from sanitized docId
+        final ContentResolver resolver = context.getContentResolver();
+        final Uri childrenUri = DocumentsContract.buildChildDocumentsUriUsingTree(directoryUri, docId);
+
+        //  Query the content provider safely
+        try (Cursor c = resolver.query(childrenUri,
+                new String[]{DocumentsContract.Document.COLUMN_DISPLAY_NAME},
+                null, null, null)) {
+            while (c != null && c.moveToNext()) {
                 fileNames.add(c.getString(0));
             }
         } catch (Exception e) {
