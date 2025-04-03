@@ -167,15 +167,17 @@ public class ExportActivity extends AppCompatActivity implements ExportService.E
         resultReceiver = new ExportService.ExportServiceResultReceiver(new Handler(), this);
 
         if (savedInstanceState == null) {
-            autoConflict = ConflictResolutionStrategy.CONFLICT_NONE;
-            setProgress();
-            new Thread(() -> {
-                directoryFiles = ExportUtils.getAllFiles(ExportActivity.this, documentFile.getUri());
-                runOnUiThread(() -> {
-                    createExportTasks(allInOneFile);
-                    nextExport(null);
-                });
-            }).start();
+            if (directoryUri != null && "content".equals(directoryUri.getScheme())) {
+                autoConflict = ConflictResolutionStrategy.CONFLICT_NONE;
+                setProgress();
+                new Thread(() -> {
+                    directoryFiles = ExportUtils.getAllFiles(ExportActivity.this, documentFile.getUri());
+                    runOnUiThread(() -> {
+                        createExportTasks(allInOneFile);
+                        nextExport(null);
+                    });
+                }).start();
+            }
         } else {
             autoConflict = ConflictResolutionStrategy.valueOf(savedInstanceState.getString(BUNDLE_AUTO_CONFLICT));
             trackExportSuccessCount = savedInstanceState.getInt(BUNDLE_SUCCESS_COUNT);
